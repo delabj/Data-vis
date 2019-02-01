@@ -1,0 +1,167 @@
+  #imports
+library(cowplot)
+library(ggplot2)
+library(tidyverse)
+
+
+#make the boards
+board2ship<-matrix(c(2,	3,	3,	3,	3,	3,	3,	3,	3,	2,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,  4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,  4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     3,	4,	4,	4,	4,	4,	4,	4,	4,	3,
+                     2,	3,	3,	3,	3,	3,	3,	3,	3,	2
+                     ), ncol=10)
+board3ship<-matrix(c(2,	3,	4,	4,	4,	4,	4,	4,	3,	2,
+                     3,	4,	5,	5,	5,	5,	5,	5,	4,	3,
+                     4, 5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     4,	5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     4,	5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     4,	5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     4,	5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     4,	5,	6,	6,	6,	6,	6,	6,	5,	4,
+                     3,	4,	5,	5,	5,	5,	5,	5,	4,	3,
+                     2,	3,	4,	4,	4,	4,	4,	4,	3,	2
+                     ), ncol=10)
+board4ship<-matrix(c(2,	3,	4,	5,	5,	5,	5,	4,	3,	2,
+                     3,	4,	5,	6,	6,	6,	6,	5,	4,	3,
+                     4,	5,	6,	7,	7,	7,	7,	6,	5,	4,
+                     5,	6,	7,	8,	8,	8,	8,	7,	6,	5,
+                     5,	6,	7,	8,	8,	8,	8,	7,	6,	5,
+                     5,	6,	7,	8,	8,	8,	8,	7,	6,	5,
+                     5,	6,	7,	8,	8,	8,	8,	7,	6,	5,
+                     4,	5,	6,	7,	7,	7,	7,	6,	5,	4,
+                     3,	4,	5,	6,	6,	6,	6,	5,	4,	3,
+                     2,	3,	4,	5,	5,	5,	5,	4,	3,	2
+                     ), ncol=10 )
+board5ship<-matrix(c(2,	3,	4,	5,	6,	6,	5,	4,	3,	2,
+                     3,	4,	5,	6,	7,	7,	6,	5,	4,	3,
+                     4,	5,	6,	7,	8,	8,	7,	6,	5,	4,
+                     5,	6,	7,	8,	9,	9,	8,	7,	6,	5,
+                     6,	7,	8,	9,	10,	10,	9,	8,	7,	6,
+                     6,	7,	8,	9,	10,	10,	9,	8,	7,	6,
+                     5,	6,	7,	8,	9,	9,	8,	7,	6,	5,
+                     4,	5,	6,	7,	8,	8,	7,	6,	5,	4,
+                     3,	4,	5,	6,	7,	7,	6,	5,	4,	3,
+                     2,	3,	4,	5,	6,	6,	5,	4,	3,	2
+                     ), ncol=10 )
+
+#compute the combined board
+board<-board2ship+board3ship+board3ship+board4ship+board5ship
+
+
+
+#convert the baord to a data frame
+board2<- board %>%
+  tbl_df() %>%
+  rownames_to_column('Var1') %>%
+  gather(Var2, value, -Var1) %>%
+  mutate( 
+    Var1 = factor(Var1, levels=1:20),
+    Var2 = factor(gsub("V", "", Var2), levels=1:20))
+
+
+
+#plot the heatmap
+ggplot(board2, aes(Var1, Var2)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient(low = "blue", high = "orange", breaks=c(max(board),min(board)),labels=c("High ","Low ") )+
+  xlab(" ")+ylab(" ")+
+  scale_x_discrete(" ", labels=c('A','B','C','D','E','F','G','H','I','J'), limits=c(1:10),position = "top")+
+  scale_y_discrete(" ", labels=c('10','9','8','7','6','5','4','3','2','1'), limits=c(1:10))+
+  ggtitle(label="Heatmap of Possible Positions for Battleship Board")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(fill=" ")
+
+
+#turn individual ship boards into data frames
+
+board2ship.df<- board2ship %>%
+  tbl_df() %>%
+  rownames_to_column('Var1') %>%
+  gather(Var2, value, -Var1) %>%
+  mutate( 
+    Var1 = factor(Var1, levels=1:20),
+    Var2 = factor(gsub("V", "", Var2), levels=1:20)
+  )
+board3ship.df<- board3ship %>%
+  tbl_df() %>%
+  rownames_to_column('Var1') %>%
+  gather(Var2, value, -Var1) %>%
+  mutate( 
+    Var1 = factor(Var1, levels=1:20),
+    Var2 = factor(gsub("V", "", Var2), levels=1:20)
+  )
+board4ship.df<- board4ship %>%
+  tbl_df() %>%
+  rownames_to_column('Var1') %>%
+  gather(Var2, value, -Var1) %>%
+  mutate( 
+    Var1 = factor(Var1, levels=1:20),
+    Var2 = factor(gsub("V", "", Var2), levels=1:20)
+  )
+
+board5ship.df<- board5ship %>%
+  tbl_df() %>%
+  rownames_to_column('Var1') %>%
+  gather(Var2, value, -Var1) %>%
+  mutate( 
+    Var1 = factor(Var1, levels=1:20),
+    Var2 = factor(gsub("V", "", Var2), levels=1:20)
+  )
+
+
+
+## plot data
+p2 <- ggplot(board2ship.df, aes(Var1, Var2)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient(low = "blue", high = "orange" )+
+  xlab(" ")+ylab(" ")+
+  scale_x_discrete(" ", labels=c('A','B','C','D','E','F','G','H','I','J'), limits=c(1:10),position = "top")+
+  scale_y_discrete(" ", labels=c('10','9','8','7','6','5','4','3','2','1'), limits=c(1:10))+
+  ggtitle(label="Heatmap of Possible Positions \nfor a Destroyer")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(fill=" ")
+
+p3 <- ggplot(board3ship.df, aes(Var1, Var2)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient(low = "blue", high = "orange" )+
+  xlab(" ")+ylab(" ")+
+  scale_x_discrete(" ", labels=c('A','B','C','D','E','F','G','H','I','J'), limits=c(1:10),position = "top")+
+  scale_y_discrete(" ", labels=c('10','9','8','7','6','5','4','3','2','1'), limits=c(1:10))+
+  ggtitle(label="Heatmap of Possible Positions \n for a  Submarine or Cruiser")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(fill=" ")
+
+p4 <- ggplot(board4ship.df, aes(Var1, Var2)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient(low = "blue", high = "orange", breaks=c(8,2),labels=c("High ","Low ") )+
+  xlab(" ")+ylab(" ")+
+  scale_x_discrete(" ", labels=c('A','B','C','D','E','F','G','H','I','J'), limits=c(1:10),position = "top")+
+  scale_y_discrete(" ", labels=c('10','9','8','7','6','5','4','3','2','1'), limits=c(1:10))+
+  ggtitle(label="Heatmap of Possible Positions \n  for a Battleship")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(fill=" ")
+
+
+p5 <-ggplot(board5ship.df, aes(Var1, Var2)) +
+  geom_tile(aes(fill = value)) + 
+  scale_fill_gradient(low = "blue", high = "orange", breaks=c(10,2),labels=c("High ","Low ") )+
+  xlab(" ")+ylab(" ")+
+  scale_x_discrete(" ", labels=c('A','B','C','D','E','F','G','H','I','J'), limits=c(1:10),position = "top")+
+  scale_y_discrete(" ", labels=c('10','9','8','7','6','5','4','3','2','1'), limits=c(1:10))+
+  ggtitle(label="Heatmap of Possible Positions \nfor a Carrier")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  labs(fill=" ")
+
+
+#plots a grid
+plot_grid(p2,p3,p4,p5) 
+
+    
+    
+  
