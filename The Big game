@@ -1,0 +1,18 @@
+#imports
+library(ggplot2)
+library(plotly)
+
+
+
+#Make the plot
+g<- ggplot(combined, aes(text= Champion))+
+  geom_point(aes(Year,WinRatio, fill=Status),pch=21,, size =5)+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    panel.background = element_rect(fill = "darkGreen", colour = "darkgreen",size = 0.5, linetype = "solid"), 
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "Yellow"),
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "darkgreen"))+
+  scale_y_continuous(minor_breaks = seq(0 , 1, .1), breaks = seq(0, 1, .05))+
+  scale_x_continuous(minor_breaks = seq(1967 , 2018, 1), breaks = seq(1967 , 2018, 1))+
+  labs(title = 'The Big Game: Win Ratios of Teams')+
+  ylab("Win Ratio")
+ggplotly(g) #interactive!
