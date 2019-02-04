@@ -1,0 +1,44 @@
+#imports
+library(dplyr)
+library(tidyr) 
+library(ggplot2)
+library(gganimate)
+library(animation)
+library(maps)
+library(mapdata)
+library(viridis)
+
+
+
+#prep the data
+ufos <- ufos %>%
+  separate(datetime, c("date", "time"), sep = " ") %>% #make 2 columns
+  mutate(date = mdy(date),
+         latitude = as.numeric(latitude), #fix this import issue
+         month = floor_date(date, "month"), #make the dates the same
+         year = floor_date(date, "year"))
+
+ufos$years<-substr(ufos$year,1,4) #extract the year
+
+map <- borders("state", colour = "black", fill = "gray66") #make the map
+
+
+
+#make the frames
+f<-ggplot(ufos, aes(x=longitude, y=latitude, color=shape, group=years)) + map +
+  geom_point(size=2) +
+  scale_color_viridis(discrete = TRUE, alpha = 0.75) +
+  transition_states(years,
+                    transition_length = 4,
+                    state_length = 2)+
+  shadow_mark(alpha = 0.3, size = 1)+
+  labs(title= "UFO Sighting in the Lower 48", subtitle = 'UFO Sightings in: {closest_state}')
+
+#exit/entry animations
+f <-f + 
+  enter_fade() + 
+  exit_shrink()
+
+#actually animate the gif
+animate(f, nframes = 625, fps=25,  duration = 25, width = 1050, height = 600)
+
