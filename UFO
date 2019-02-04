@@ -23,6 +23,17 @@ ufos$years<-substr(ufos$year,1,4) #extract the year
 map <- borders("state", colour = "black", fill = "gray66") #make the map
 
 
+ggplot(ufos, aes(years, fill=shape))+
+  geom_histogram()+
+  scale_fill_viridis(discrete = TRUE, alpha = 0.75)+
+  theme(axis.text.x = element_text(angle = 75, hjust = 1),
+        panel.background = element_rect(fill = "darkGrey", colour = "darkgrey",size = 0.5, linetype = "solid"), 
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "white"),
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "white"))+
+  scale_x_continuous(minor_breaks = seq(1950 , 2015, 1), breaks = seq(1950 , 2015, 1))+
+  xlim(1950,2015)+
+  labs(title="Histogram of UFO sightings")
+
 
 #make the frames
 f<-ggplot(ufos, aes(x=longitude, y=latitude, color=shape, group=years)) + map +
