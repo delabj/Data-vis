@@ -20,7 +20,7 @@ ufos <- ufos %>%
 
 ufos$years<-substr(ufos$year,1,4) #extract the year
 
-map <- borders("state", colour = "black", fill = "gray66") #make the map
+map <- borders("state", colour = "black", fill = "darkgray") #make the map
 
 
 ggplot(ufos, aes(years, fill=shape))+
