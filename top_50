@@ -1,0 +1,21 @@
+#imports
+library(ggplot2) 
+library(treemapify)
+
+#adjusted a single category into a broader one
+top_50$Category[17]<-top_50$Category[33]
+
+#makes the group chart
+gplot(top_50, aes(area = top_50$Points, fill = Category, label=Site, subgroup=Category)) +
+  geom_treemap()+
+  geom_treemap_text(place= "centre")+
+  geom_treemap_subgroup_border() +
+  scale_fill_brewer(palette = "Set1")+
+  labs(title = "Top 50 Websites Treemap of Rank")
+
+#makes the scaled chart
+ggplot(top_50, aes(area = top_50$Points, fill = Category, label=Site)) +
+  geom_treemap()+
+  geom_treemap_text(place= "centre")+
+  scale_fill_brewer(palette = "Set1")+
+  labs(title = "Top 50 Websites Treemap")
