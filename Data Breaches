@@ -1,0 +1,73 @@
+#imports
+library(ggplot2)
+library(packcircles)
+library(plotly)
+library(RColorBrewer)
+
+#circle packing problem
+packedBySize <- circleProgressiveLayout(Breach$`Records Lost`, sizetype='area')
+
+#formating newdata
+breach.packed<-Breach
+breach.packed<- cbind(breach.packed, packedBySize)
+breach.packed$id<-c(1:270) #so I can lable with hover
+ 
+ 
+ #makes the circles
+plot(breach.packed$`Records Lost`, breach.packed$radius)  
+dat.gg <- circleLayoutVertices(packedBySize, npoints=50)
+dat.gg<-merge(dat.gg, breach.packed[,-(11:13)], by.x = "id", by.y="id" )
+
+#making the hover text
+attach(dat.gg)
+hold<-paste("Entitiy: ", Entity,"\n Sector: ", Sector,"\n Year: ", Year,"\n Method: ",`Method of Leak`,"\n # Leaked: ",`Records Lost`)
+detach(dat.gg)
+cat(hold[1])
+
+#plotting the bubble clouds
+interact<-ggplot(data=dat.gg, 
+  aes(text=hold))+
+  geom_polygon(data = dat.gg, aes(x, y, group = id , fill=as.factor(dat.gg$Sector)), colour = "black", alpha = 0.6) +
+  scale_size_continuous(range = c(1,4))+
+  scale_fill_brewer(palette = "Spectral",name = "Sector")+
+  theme_void()+
+  labs(title="Data Breaches Colored by Sector")
+  
+interact2<-ggplot(data=dat.gg, 
+                 aes(text=hold))+
+  geom_polygon(data = dat.gg, aes(x, y, group = id, fill=as.factor(dat.gg$`Method of Leak`)), colour = "black", alpha = 0.6) +
+  theme(legend.position="none") +
+  scale_size_continuous(range = c(1,4))+
+  scale_fill_brewer(palette = "Spectral",name = "Method")+
+  theme_void()+
+  labs(title="Data Breaches Colored by Method")
+
+#formatting the margins
+m <- list(
+  l = 50,
+  r = 50,
+  b = 100,
+  t = 100,
+  pad = 4
+)
+
+#interactive
+ggplotly(interact, tooltip = c("text"), autosize = F, width = 700, height = 600, margin = m)  
+ggplotly(interact2, tooltip = c("text"),autosize = F, width = 775, height = 600, margin = m)  
+
+
+#combining plots 
+require(gridExtra)
+plot1 <- ggplot(data=Breach)+
+  geom_histogram(aes(Year),fill="darkred")+
+  labs(title='Number of Breaches Per Year')+
+  scale_x_discrete( limit = c(2004:2017))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+plot2 <- ggplot(data=Breach)+
+  geom_point(aes(Year, `Records Lost`), size=5, col="darkblue")+
+  ylab('Records Lost')+
+  labs(title='Number of Records Lost Per Year')+
+  scale_x_discrete( limit = c(2004:2017))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+p<-grid.arrange(plot1, plot2, ncol=2)
+
