@@ -1,0 +1,228 @@
+library(dplyr)
+library(tidyr)
+library(tidytext)
+library(ggplot2)
+library(readr)
+library(purrr)
+library(plotly)
+library(RColorBrewer)
+
+
+
+#some code from kaggle that showed how to join the different sets of data
+
+# Combine columns 
+set_colors <- themes %>%
+   mutate(root_id = ifelse(!is.na(parent_id), parent_id, id), 
+         theme = name, theme_id = id) %>%
+  select(theme, theme_id, root_id) %>%
+  right_join(sets, by = "theme_id") %>%
+  mutate(set_name = stringr::str_sub(name, 1, 20)) %>%
+  select(set_num, set_name, year, root_id, theme_id, theme) %>%
+  right_join(inventories, by = "set_num") %>%
+  right_join(inventory_parts, by = c("id" = "inventory_id")) %>%
+  left_join(colors, by = c("color_id" = "id")) %>%
+  mutate(rgba = ifelse(is_trans == "t", paste0("#", rgb, "80"),paste0("#", rgb, "FF"))) %>%    
+  select(set_num, set_name, theme_id, theme, root_id, rgba, year, quantity) 
+
+
+set_colors <- set_colors[rep(seq(nrow(set_colors)), set_colors$quantity), ] %>% 
+  select(-quantity)
+
+dim(set_colors)
+head(set_colors)
+
+
+freq_tbl <- set_colors %>% select(year, rgba) %>% 
+  group_by(year, rgba) %>%
+  summarise(n = n())  %>%
+  mutate(percent = n/sum(n))
+
+#end Kaggle set up
+
+
+#set up the pallet
+pal <- unique(set_colors$rgba)
+names(pal) <- unique(pal) 
+
+#make the plots
+colorsbyyear <-  freq_tbl %>%  
+  ggplot() + 
+  geom_bar(aes(x = year, fill = rgba), width = 1) + 
+  labs(x = "Years", y = "Unique Brick Colors", 
+    title = "Unique Lego Brick Colors by Year"  )  +          
+  scale_fill_manual(values = pal)+ 
+  theme(
+    text = element_text(size = 13),
+    plot.title = element_text(size = rel(1)),
+    axis.title = element_text(size = rel(0.7), color = "gray15"),
+    legend.position = "none", 
+    panel.grid = element_blank()
+  )
+colorsbyyear+
+  scale_x_discrete( limit = c(1950:2017))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+colorfreq <-  freq_tbl %>% ggplot() + 
+  geom_col(
+    aes(x = year, y = percent, fill = rgba),  
+    width = 1
+  ) +
+  labs(x = "", 
+       y = "Relative Color Frequency", 
+       title = "Lego Brick Colors Frequency by Year") +
+  scale_fill_manual(values = pal) + 
+  scale_x_discrete(limits = breaks) +          
+  theme(
+    text = element_text(size = 13),
+    axis.title = element_text(size = rel(0.8), color = "gray15"),
+    legend.position = "none", 
+    axis.text.y = element_blank(), 
+    axis.ticks.y = element_blank(), 
+    panel.grid = element_blank()
+  )
+colorfreq+
+  scale_x_discrete( limit = c(1950:2017))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#put color names in vector #don't think I used this actually
+
+colornames<-c("Dark Bluish Gray", "Light Gray", "Orange",  "Black",  "Light Flesh",  "Trans-Clear",  "Bright Pink",  "Green",  "White",  "Lime",
+  "Bright Light Orange",  "Reddish Brown",  "Trans-Light Blue",  "Medium Azure",  "Magenta",  "Trans-Green",  "Dark Gray",  "Blue",  "Trans-Neon Green",
+  "Red",  "Yellow",  "Flat Silver",  "Light Bluish Gray",  "Trans-Yellow",  "Dark Pink",  "Trans-Dark Blue",  "Brown",  "Tan",  "Trans-Black IR Lens",
+  "Dark Red",  "Bright Green",  "Dark Blue",  "Dark Orange",  "Dark Brown",  "Pearl Dark Gray",  "Trans-Orange",  "Pearl Light Gray",  "Dark Tan",
+  "Medium Blue",  "Pearl Gold",  "Trans-Dark Pink",  "Metallic Gold",  "Trans-Neon Orange",  "Dark Green",  "Copper",  "Chrome Gold",  "Sand Green",
+  "Metallic Silver",  "Sand Blue",  "Chrome Silver",  "Medium Dark Flesh",  "Olive Green",  "Royal Blue",  "Light Yellow",  "Pink",  "Medium Green",
+  "Unknown",  "Trans-Bright Green",  "Dark Purple",  "Sand Red",  "Medium Orange",  "Purple",  "Earth Orange",  "Trans-Purple",  "Dark Turquoise",
+  "Trans-Medium Blue",  "Medium Lavender",  "Lavender",  "Light Aqua",  "Speckle Black-Copper",  "Bright Light Yellow",  "Bright Light Blue",
+  "Glow In Dark Opaque",  "Light Salmon",  "Dark Azure",  "Very Light Bluish Gray",  "Medium Lime",  "Violet",  "Light Green",  "Light Violet",
+  "Flesh",  "Glow in Dark White",  "Chrome Blue",  "Trans-Neon Yellow",  "Rust",  "Glitter Trans-Light Blue",  "Chrome Pink",  "Dark Flesh",  "Trans-Light Purple",
+  "Light Blue",  "Fabuland Brown",  "Aqua",  "Light Purple",  "Light Turquoise",  "Trans-Very Lt Blue",  "Maersk Blue",  "Light Orange",  "Yellowish Green",
+  "Speckle DBGray-Silver",  "Flat Dark Gold",  "Sky Blue",  "Pearl Light Gold",  "Metal Blue",  "Glow In Dark Trans",  "Blue-Violet",  "Dark Blue-Violet",
+  "Glitter Trans-Neon Green",  "Salmon",  "Metallic Green",  "Chrome Antique Brass",  "Very Light Orange",  "Sand Purple",  "Pearl Very Light Gray",
+  "Light Pink",  "Chrome Black",  "Very Light Gray",  "Pearl White",  "Chrome Green",  "Medium Dark Pink",  "Medium Violet",  "Trans Light Royal Blue")
+
+
+test<-data.frame(pal, colornames)
+
+#used the waffel 2 setup from kaggle
+
+#waffle theme
+
+theme_waff <- function(bgcol = "#e8e4e2") {
+  theme_minimal() +
+    theme(
+      legend.position = "none",
+      plot.background = element_rect(fill = bgcol, color = bgcol),
+      panel.background = element_rect(fill = bgcol, color = bgcol),
+      plot.title = element_text(size = 11, face = "bold", color = "gray5"),
+      plot.subtitle = element_text(color = "gray10",face = "plain",size = 9),
+      panel.grid = element_blank(),axis.text = element_blank()
+      )
+}
+
+
+name <- as.character(test$pal)
+names(name) <- test$colornames
+name
+
+year1950<-freq_tbl[1:10,]
+year1950<-merge(year1950, test, by.x="rgba", by.y ="pal")
+
+
+name<-(year1950$n)
+names(name) <- year1950$colornames
+name
+
+waffle2(
+  name, rows = 7, size = 1,
+  colors = year1950$rgba, 
+  legend_pos="right",
+  grout_color = "#a8a4a2", title = paste("Lego colors in", year1950$year[1])
+)
++ theme_waff("#a8a4a2")
+
+data<-freq_tbl[which(freq_tbl$year==1953),]
+data.merged<-merge(data, test, by.x="rgba", by.y ="pal")
+
+name<-data.merged$n
+names(name)<- data.merged$colornames
+waffle2(
+  name, rows = 7, size = 1,
+  colors = data.merged$rgba, 
+  legend_pos="right",
+  grout_color = "#a8a4a2", title = paste("Lego colors in", data.merged$year[1]) 
+)
+
+
+
+#plot the waffel charts by year
+
+data<-freq_tbl[which(freq_tbl$year==1950),]
+data.merged<-merge(data, test, by.x="rgba", by.y ="pal")
+
+name<-data.merged$n
+names(name)<- data.merged$colornames
+waffle2(
+  name, rows = 7, size = 1,
+  colors = data.merged$rgba, 
+  legend_pos="right",
+  grout_color = "#a8a4a2", title = paste("Lego colors in", data.merged$year[1]) 
+)
+
+
+data<-freq_tbl[which(freq_tbl$year==1953),]
+data.merged<-merge(data, test, by.x="rgba", by.y ="pal")
+
+name<-data.merged$n
+names(name)<- data.merged$colornames
+waffle2(
+  name, rows = 7, size = 1,
+  colors = data.merged$rgba, 
+  legend_pos="right",
+  grout_color = "#a8a4a2", title = paste("Lego colors in", data.merged$year[1]) 
+)
+
+
+data<-freq_tbl[which(freq_tbl$year==1995),]
+data.merged<-merge(data, test, by.x="rgba", by.y ="pal")
+
+name<-data.merged$n
+names(name)<- data.merged$colornames
+waffle2(
+  name, rows = 150, size = 1,
+  colors = data.merged$rgba, 
+  legend_pos="none",
+  grout_color = "#a8a4a2", title = paste("Lego colors in", data.merged$year[1]) 
+)
+
+sum(freq_tbl$n[which(freq_tbl$year==1953)])
+
+
+#histogram 
+
+countpiece<-c()
+year<-countpiece
+count<-1
+for(i in c(1950,1953:2017)){
+
+  year[count]<-i
+  countpiece[count]<-sum(freq_tbl$n[which(freq_tbl$year==i)])
+  count=count+1
+  
+  
+}
+
+mini<-data.frame(year, countpiece)
+
+ggplot(data=mini)+
+  geom_col(aes(year, countpiece), fill="red")+
+  ylab("Number")+
+  xlab("")+labs(title=" Number of Unique Piece & Color Combinations")+
+  scale_x_discrete( limit = c(1950:2017))+
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
