@@ -1,0 +1,52 @@
+library(ggplot2)
+library(dplyr)
+
+Wines$country <- as.factor(Wines$country )
+Wines$province<- as.factor(Wines$province)
+Wines$VarityReduced<- as.factor(Wines$VarityReduced)
+
+Wines<-winemag_data_first150kedited
+
+Wines$X1<-NULL
+
+na.omit(Wines, cols=c(VarityReduced, price,points))
+
+pal <- c("#ffff99", "#ffCCCC", "#993399","#FFFF00", "#990000", "#660033")
+
+
+ggplot(Wines)+
+  theme(panel.background = element_rect(fill="gray66"), 
+        panel.grid.major = element_line(colour = "gray"), 
+        panel.grid.minor = element_line(colour = "gray"),
+        legend.key = element_rect(fill = 'Gray66')
+  )+
+  geom_point(aes(x= points, y= price, color=VarityReduced), size = 3, alpha=.5)+
+  scale_color_manual(values = pal)+
+  labs(title="Wines: Price vs Rating", x="Rating", y="Price")
+
+ggplot(Wines)+
+  theme(panel.background = element_rect(fill="gray66"), 
+        panel.grid.major = element_line(colour = "gray"), 
+        panel.grid.minor = element_line(colour = "gray"),
+        legend.key = element_rect(fill = 'Gray66')
+  )+
+  geom_bar(aes(x=price, fill=VarityReduced), width=1, alpha=.5)+
+  xlim(0,100)+
+  scale_fill_manual(values = pal)+
+  labs(title="Wines: Types of Wines at Price", x="Price")
+
+
+
+
+
+
+ggplot(Wines)+
+  theme(panel.background = element_rect(fill="gray66"), 
+        panel.grid.major = element_line(colour = "gray"), 
+        panel.grid.minor = element_line(colour = "gray"),
+        legend.key = element_rect(fill = 'Gray66')
+  )+
+  geom_bar(aes(x=points, fill=VarityReduced), width=1, alpha=.5)+
+  scale_fill_manual(values = pal)+
+  labs(title="Wines: Types of Wines Per Rating", x="Price")
+  
